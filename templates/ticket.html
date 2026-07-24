@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Orden #{{ o.id }}</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; width: 300px; font-size: 10px; margin: 0; padding: 2px; background: white; }
+        .center { text-align: center; }
+        .line { border-bottom: 1px dashed black; margin: 4px 0; }
+        .copia-label { text-align: center; font-weight: bold; font-size: 11px; background: #000; color: #fff; padding: 2px; margin-bottom: 3px; }
+        .ticket-box { margin-bottom: 8px; }
+        .cut-line { border-top: 2px dashed black; margin: 10px 0; position: relative; text-align: center; }
+        .cut-line span { background: white; padding: 0 5px; font-size: 9px; font-weight: bold; position: relative; top: -7px; }
+        
+        .no-print { text-align: center; margin: 15px 0; }
+        .no-print button { padding: 8px 15px; font-family: monospace; font-weight: bold; background: #000; color: #fff; border: none; cursor: pointer; border-radius: 4px; }
+        .no-print button:hover { background: #333; }
+        
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket-box">
+        <div class="copia-label">--- COPIA NEGOCIO (FIRMADA) ---</div>
+        {% include "contenido_ticket.html" %}
+    </div>
+    <div class="cut-line"><span>✂️ CORTAR AQUÍ ✂️</span></div>
+    <div class="ticket-box">
+        <div class="copia-label">--- COPIA CLIENTE ---</div>
+        {% include "contenido_ticket.html" %}
+    </div>
+
+    <div class="no-print">
+        <p>¿Deseas regresar?</p>
+        <button onclick="cerrarVentana()">Cerrar / Volver al Menú</button>
+    </div>
+
+    <script>
+        window.print();
+        
+        window.onafterprint = function() {
+            cerrarVentana();
+        };
+
+        function cerrarVentana() {
+            window.close();
+            // Respaldo por si el navegador bloquea el cierre automático
+            setTimeout(function() {
+                window.location.href = "/";
+            }, 300);
+        }
+    </script>
+</body>
+</html>

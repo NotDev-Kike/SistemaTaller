@@ -1,0 +1,36 @@
+<div class="center">
+    <strong>MASTERFIX</strong><br>
+    COMPROBANTE DE INGRESO
+</div>
+<div class="line"></div>
+<b>ORDEN N°:</b> {{ o.id }}<br>
+<b>FECHA:</b> {{ o.fecha }}<br>
+<div class="line"></div>
+<b>CLIENTE:</b> {{ o.cliente_nombre }}<br>
+<b>CELULAR:</b> {{ o.cliente_celular }}<br>
+<b>IDENTIDAD:</b> {{ o.cliente_identidad }}<br>
+<div class="line"></div>
+<b>EQUIPO:</b> {{ o.marca }} {{ o.modelo }}<br>
+<b>COLOR:</b> {{ o.color }}<br>
+<b>IMEI:</b> {{ o.imei }}<br>
+<b>CLAVE/PATRÓN:</b> {{ o.credenciales }}<br>
+<b>OBSERVACIONES:</b> {{ o.observaciones }}<br>
+<div class="line"></div>
+<small>
+<b>POLITICAS Y CONDICIONES:</b><br>
+1. 15 días para retirar equipo finalizado.<br>
+2. Pérdida de papel aplica recargo de revisión.<br>
+3. Garantia aplica solo si el proveedor lo indica.<br>
+</small>
+<div class="line"></div>
+<div style="font-size: 9px; text-align: justify; margin-bottom: 5px;">
+Autorizo la revisión y/o reparación del dispositivo descrito bajo los términos y condiciones anteriores.
+</div>
+<br><br>
+<div class="center">
+    _________________________________________<br>
+    <b>Firma del Cliente de Conformidad</b><br>
+    ID: {{ o.cliente_identidad }}
+</div>
+<div class="line"></div>
+<div class="center">¡Gracias por su preferencia!</div>

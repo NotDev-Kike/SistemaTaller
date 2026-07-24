@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema FSM - MASTERFIX</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #1e3a8a; margin: 0; font-size: 22px; }
+        
+        .search-box { display: flex; gap: 8px; align-items: center; }
+        .search-box input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; width: 200px; }
+        .search-box button { background: #4b5563; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .search-box button:hover { background: #374151; }
+        .search-box a.btn-clear { background: #e5e7eb; color: #374151; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-excel { background: #16a34a; color: white; padding: 10px 15px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block; }
+        .btn-excel:hover { background: #15803d; }
+        .btn-nuevo { background: #2563eb; color: white; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block; }
+        .btn-nuevo:hover { background: #1d4ed8; }
+        
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+        th { background: #f8fafc; color: #1e3a8a; font-weight: 600; }
+        tr:hover { background: #f9fafb; }
+        
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 5px; }
+        .badge-Revision { background: #fef3c7; color: #92400e; }
+        .badge-Proceso { background: #dbeafe; color: #1e40af; }
+        .badge-Pruebas { background: #f3e8ff; color: #6b21a8; }
+        .badge-Finalizado { background: #dcfce7; color: #166534; }
+        .badge-Entregado { background: #f3f4f6; color: #374151; }
+
+        .status-quick-actions { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+        .status-quick-actions a { font-size: 10px; padding: 2px 6px; border-radius: 3px; text-decoration: none; font-weight: bold; background: #e2e8f0; color: #334155; }
+        .status-quick-actions a:hover { background: #cbd5e1; }
+
+        .actions a, .actions button { display: inline-block; padding: 6px 10px; margin-right: 4px; margin-bottom: 4px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-editar { background: #2563eb; color: white; }
+        .btn-ticket { background: #4b5563; color: white; }
+        .btn-wa { background: #16a34a; color: white; }
+        .btn-eliminar { background: #dc2626; color: white; }
+        .btn-eliminar:hover { background: #b91c1c; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📱 Sistema FSM - MASTERFIX</h1>
+        
+        <form class="search-box" action="/" method="get">
+            <input type="text" name="q" placeholder="N° Orden, Nombre o Celular..." value="{{ q }}">
+            <button type="submit">Buscar</button>
+            {% if q %}
+            <a href="/" class="btn-clear">Limpiar</a>
+            {% endif %}
+        </form>
+
+        <div class="btn-group">
+            <a href="/exportar-excel" class="btn-excel">📊 Exportar a Excel</a>
+            <a href="/nuevo" class="btn-nuevo">＋ Ingresar Nuevo Equipo</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0; color:#374151;">
+            Equipos en Taller y Órdenes Activas 
+            {% if q %}<span style="font-size: 13px; color: #2563eb;">(Filtrado por: "{{ q }}")</span>{% endif %}
+        </h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Orden</th>
+                    <th>Cliente</th>
+                    <th>Dispositivo (IMEI / Clave)</th>
+                    <th>Estado (Cambio Rápido)</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in ordenes %}
+                <tr>
+                    <td><b>#{{ o.id }}</b></td>
+                    <td>
+                        {{ o.cliente_nombre }}<br>
+                        <small style="color: #6b7280;">📞 {{ o.cliente_celular }} | ID: {{ o.cliente_identidad }}</small>
+                    </td>
+                    <td>
+                        {{ o.marca }} {{ o.modelo }} ({{ o.color }})<br>
+                        <small style="color: #4338ca;">🔑 {{ o.credenciales }}</small>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ o.estado }}">{{ o.estado }}</span>
+                        <div class="status-quick-actions">
+                            {% if o.estado != 'Revision' %}<a href="/cambiar-estado/{{ o.id }}/Revision">Revisión</a>{% endif %}
+                            {% if o.estado != 'Proceso' %}<a href="/cambiar-estado/{{ o.id }}/Proceso">Proceso</a>{% endif %}
+                            {% if o.estado != 'Pruebas' %}<a href="/cambiar-estado/{{ o.id }}/Pruebas">Pruebas</a>{% endif %}
+                            {% if o.estado != 'Finalizado' %}<a href="/cambiar-estado/{{ o.id }}/Finalizado">Finalizado</a>{% endif %}
+                            {% if o.estado != 'Entregado' %}<a href="/cambiar-estado/{{ o.id }}/Entregado">Entregado</a>{% endif %}
+                        </div>
+                    </td>
+                    <td><small>{{ o.fecha }}</small></td>
+                    <td class="actions">
+                        <a href="/editar/{{ o.id }}" class="btn-editar">✏️ Editar</a>
+                        <a href="/ticket/{{ o.id }}" target="_blank" class="btn-ticket">🖨️ Ticket</a>
+                        <a href="https://api.whatsapp.com/send?phone=504{{ o.cliente_celular }}&text=¡Hola%20{{ o.cliente_nombre }}!%20Le%20saludamos%20del%20Taller.%20Su%20equipo%20({{ o.marca }}%20{{ o.modelo }})%20con%20Orden%20%23{{ o.id }}%20se%20encuentra%20en%20estado:%20{{ o.estado }}." target="_blank" class="btn-wa">💬 WhatsApp</a>
+                        
+                        <button type="button" class="btn-eliminar" onclick="eliminarOrden('{{ o.id }}', '{{ o.cliente_nombre }}')">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #6b7280; padding: 30px;">No se encontraron órdenes registradas o coincidentes.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        window.addEventListener('focus', () => {
+            location.reload();
+        });
+
+        function eliminarOrden(id, nombre) {
+            if (confirm('¿Estás seguro de eliminar la orden #' + id + ' de ' + nombre + '? Esta acción no se puede deshacer.')) {
+                fetch('/eliminar/' + id, {
+                    method: 'POST',
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Hubo un error al intentar eliminar la orden.');
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('No se pudo conectar con el servidor.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

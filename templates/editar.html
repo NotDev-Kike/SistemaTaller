@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Orden #{{ orden.id }} - MASTERFIX</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 30px; }
+        .container { max-width: 650px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { color: #1e3a8a; margin-top: 0; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+        h3 { color: #374151; font-size: 15px; margin-top: 25px; margin-bottom: 10px; border-left: 4px solid #2563eb; padding-left: 8px; }
+        label { font-weight: 600; color: #4b5563; font-size: 13px; display: block; margin-top: 10px; }
+        input[type="text"], select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .pattern-box { background: #f8fafc; border: 1px solid #d1d5db; border-radius: 8px; padding: 15px; margin-top: 5px; display: flex; flex-direction: column; align-items: center; user-select: none; }
+        .pattern-grid { display: grid; grid-template-columns: repeat(3, 65px); grid-template-rows: repeat(3, 65px); gap: 20px; position: relative; margin: 10px 0; touch-action: none; }
+        .pattern-dot { width: 65px; height: 65px; border-radius: 50%; background: #e2e8f0; border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; z-index: 2; transition: transform 0.1s; }
+        .pattern-dot.active { background: #2563eb; border-color: #1d4ed8; transform: scale(1.15); }
+        .pattern-dot.active::after { content: ''; width: 22px; height: 22px; background: white; border-radius: 50%; display: block; }
+        canvas.pattern-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        
+        .btn-limpiar { background: #64748b; color: white; border: none; padding: 6px 14px; border-radius: 5px; font-size: 12px; cursor: pointer; font-weight: 600; margin-top: 5px; }
+        .btn-limpiar:hover { background: #475569; }
+
+        button[type="submit"] { background: #16a34a; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; margin-top: 25px; transition: background 0.2s; }
+        button[type="submit"]:hover { background: #15803d; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #4b5563; text-decoration: none; font-size: 14px; font-weight: 600; }
+        .back-link:hover { color: #1e3a8a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Volver al Panel Principal</a>
+        <h2>Editar Orden #{{ orden.id }}</h2>
+        <form action="/actualizar-orden/{{ orden.id }}" method="post">
+            
+            <label>Estado Actual del Equipo:</label>
+            <select name="estado">
+                <option value="Revision" {% if orden.estado == 'Revision' %}selected{% endif %}>Revision</option>
+                <option value="Proceso" {% if orden.estado == 'Proceso' %}selected{% endif %}>Proceso</option>
+                <option value="Pruebas" {% if orden.estado == 'Pruebas' %}selected{% endif %}>Pruebas</option>
+                <option value="Finalizado" {% if orden.estado == 'Finalizado' %}selected{% endif %}>Finalizado</option>
+                <option value="Entregado" {% if orden.estado == 'Entregado' %}selected{% endif %}>Entregado</option>
+            </select>
+
+            <h3>Datos del Cliente</h3>
+            <label>Nombre del Cliente:</label>
+            <input type="text" name="nombre" value="{{ orden.cliente_nombre }}" required>
+            
+            <label>Número de Celular:</label>
+            <input type="text" name="celular" value="{{ orden.cliente_celular }}" required>
+            
+            <label>Número de Identidad:</label>
+            <input type="text" name="identidad" value="{{ orden.cliente_identidad }}" required>
+            
+            <h3>Datos del Dispositivo</h3>
+            <label>Marca:</label>
+            <input type="text" name="marca" value="{{ orden.marca }}" required>
+            
+            <label>Modelo:</label>
+            <input type="text" name="modelo" value="{{ orden.modelo }}" required>
+            
+            <label>Color:</label>
+            <input type="text" name="color" value="{{ orden.color }}" required>
+            
+            <label>IMEI / Número de Serie:</label>
+            <input type="text" name="imei" value="{{ orden.imei }}" required>
+            
+            <label>Patrón o Contraseña Registrada:</label>
+            <div class="pattern-box">
+                <small style="color: #64748b; margin-bottom: 5px;">Dibuja un nuevo patrón si deseas cambiarlo:</small>
+                <div class="pattern-grid" id="patternGrid">
+                    <canvas id="patternCanvas" class="pattern-canvas"></canvas>
+                    <div class="pattern-dot" data-id="1"></div>
+                    <div class="pattern-dot" data-id="2"></div>
+                    <div class="pattern-dot" data-id="3"></div>
+                    <div class="pattern-dot" data-id="4"></div>
+                    <div class="pattern-dot" data-id="5"></div>
+                    <div class="pattern-dot" data-id="6"></div>
+                    <div class="pattern-dot" data-id="7"></div>
+                    <div class="pattern-dot" data-id="8"></div>
+                    <div class="pattern-dot" data-id="9"></div>
+                </div>
+                <button type="button" class="btn-limpiar" id="btnClearPattern">Limpiar Patrón</button>
+            </div>
+
+            <label style="margin-top: 15px;">Credencial Actual (Editable):</label>
+            <input type="text" id="credenciales" name="credenciales" value="{{ orden.credenciales }}" required>
+            
+            <label>Estado Físico / Observaciones:</label>
+            <textarea name="observaciones" rows="3">{{ orden.observaciones }}</textarea>
+            
+            <button type="submit">Guardar Cambios</button>
+        </form>
+    </div>
+
+    <script>
+        const grid = document.getElementById('patternGrid');
+        const dots = document.querySelectorAll('.pattern-dot');
+        const canvas = document.getElementById('patternCanvas');
+        const ctx = canvas.getContext('2d');
+        const credInput = document.getElementById('credenciales');
+        const btnClear = document.getElementById('btnClearPattern');
+
+        let selectedDots = [];
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            canvas.width = grid.clientWidth;
+            canvas.height = grid.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', resizeCanvas);
+
+        dots.forEach(dot => {
+            dot.addEventListener('mousedown', startDraw);
+            dot.addEventListener('mouseenter', overDot);
+            dot.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw.call(dot); });
+            dot.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (target && target.classList.contains('pattern-dot')) {
+                    overDot.call(target);
+                }
+            });
+        });
+
+        window.addEventListener('mouseup', stopDraw);
+        window.addEventListener('touchend', stopDraw);
+
+        function startDraw() {
+            isDrawing = true;
+            selectedDots = [];
+            dots.forEach(d => d.classList.remove('active'));
+            addDot(this);
+        }
+
+        function overDot() {
+            if (isDrawing) {
+                addDot(this);
+            }
+        }
+
+        function addDot(dot) {
+            const id = dot.getAttribute('data-id');
+            if (!selectedDots.includes(id)) {
+                selectedDots.push(id);
+                dot.classList.add('active');
+                credInput.value = "Patrón: " + selectedDots.join(" → ");
+                redrawLines();
+            }
+        }
+
+        function stopDraw() {
+            isDrawing = false;
+        }
+
+        btnClear.addEventListener('click', () => {
+            selectedDots = [];
+            dots.forEach(d => d.classList.remove('active'));
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        function redrawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (selectedDots.length < 2) return;
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            for (let i = 0; i < selectedDots.length; i++) {
+                const dot = document.querySelector(`.pattern-dot[data-id="${selectedDots[i]}"]`);
+                const dotRect = dot.getBoundingClientRect();
+                const gridRect = grid.getBoundingClientRect();
+
+                const x = (dotRect.left + dotRect.width / 2) - gridRect.left;
+                const y = (dotRect.top + dotRect.height / 2) - gridRect.top;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
